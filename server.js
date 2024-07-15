@@ -73,6 +73,8 @@ const User = mongoose.model('User', userSchema);
 
 const Watchlist = mongoose.model('Watchlist', watchlistSchema);
 
+const Default = mongoose.model('Defaults', stockSchema);
+
 app.get('/', (req, res) => {
     const sessionData = req.session;
 
@@ -202,9 +204,15 @@ app.get('/api/get_main', async (req, res) => {
     try {
         const userId = req.session.userid;
 
-        const UserScreenModel = createWatchlistModel(userId);
-        const stocks = await UserScreenModel.find({}, { _id: 0 });
-        res.json(stocks);
+        if (userId) {
+            const UserScreenModel = createWatchlistModel(userId);
+            const stocks = await UserScreenModel.find({}, { _id: 0 });
+            res.json(stocks);
+        } else {
+            const stocks = await Default.find();
+            res.json(stocks);
+        }
+
     } catch (error) {
         console.error('Error fetching stocks:', error);
         res.status(500).json({ message: 'Failed to fetch stocks' });
@@ -387,9 +395,9 @@ app.post('/api/rename_watchlist', async (req, res) => {
             } else {
                 console.log('Not renamed');
             }
-            
-        }else{
-            res.json({message: 'Name exist'});
+
+        } else {
+            res.json({ message: 'Name exist' });
         }
 
     } catch (error) {
